@@ -1,0 +1,16 @@
+
+services:
+  stoic-quote-sender:
+    build: .
+    container_name: stoic-quote-sender
+    env_file:
+      - .env
+    environment:      
+      # Python Configuration
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - /path/to/credentials.json:/app/credentials.json
+    restart: unless-stopped
+
+volumes:
+  signal-data:

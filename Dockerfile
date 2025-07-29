@@ -16,8 +16,5 @@ COPY main.py .
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Expose port (adjust if needed)
-EXPOSE 8080
-
 # Run the application
 CMD ["python", "main.py"]

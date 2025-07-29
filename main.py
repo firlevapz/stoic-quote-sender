@@ -3,6 +3,7 @@ import requests
 import json
 import vertexai
 from vertexai.generative_models import GenerativeModel
+import time
 
 
 def get_stoic_quote():
@@ -24,7 +25,7 @@ def get_interpretation_and_translation(quote, author):
     location = "us-central1"
     vertexai.init(project=project_id, location=location)
 
-    model = GenerativeModel("gemini-2.5-pro-001")
+    model = GenerativeModel(os.environ.get("VERTEX_AI_MODEL", "gemini-2.5-flash-lite"))
 
     prompt = f"""
     Bitte übersetze das folgende Zitat ins Deutsche und interpretiere es.
@@ -93,11 +94,11 @@ def main(request):
 
             if interpreted_data:
                 formatted_message = (
-                    f"**Heutiges stoisches Zitat:**\n\n"
+                    f"Heutiges stoisches Zitat:\n\n"
                     f'"{original_quote}"\n- {author}\n\n'
-                    f"**Übersetzung:**\n{interpreted_data['translation']}\n\n"
-                    f"**Interpretation:**\n{interpreted_data['interpretation']}\n\n"
-                    f"**Beispiel:**\n{interpreted_data['example']}"
+                    f"Übersetzung:\n{interpreted_data['translation']}\n\n"
+                    f"Interpretation:\n{interpreted_data['interpretation']}\n\n"
+                    f"Beispiel:\n{interpreted_data['example']}"
                 )
                 send_signal_message(formatted_message)
                 return "Nachricht erfolgreich verarbeitet und gesendet.", 200
@@ -106,6 +107,9 @@ def main(request):
 
 
 if __name__ == "__main__":
-    # Dies ermöglicht das lokale Testen des Skripts
+    # Dies ermöglicht das lokale Testen des Skripts mit täglicher Wiederholung
     # Stelle sicher, dass du die Umgebungsvariablen gesetzt hast
-    main(None)
+    while True:
+        main(None)
+        # Schläft für 24 Stunden (86400 Sekunden)
+        time.sleep(86400)
