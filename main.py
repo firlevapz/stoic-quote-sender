@@ -24,7 +24,7 @@ def get_interpretation_and_translation(quote, author):
     location = "us-central1"
     vertexai.init(project=project_id, location=location)
 
-    model = GenerativeModel("gemini-1.5-pro-001")
+    model = GenerativeModel("gemini-2.5-pro-001")
 
     prompt = f"""
     Bitte übersetze das folgende Zitat ins Deutsche und interpretiere es.
@@ -83,7 +83,7 @@ def main(request):
     quote_data = get_stoic_quote()
 
     if quote_data:
-        original_quote = quote_data.get("quote")
+        original_quote = quote_data.get("text")
         author = quote_data.get("author")
 
         if original_quote and author:
