@@ -4,6 +4,7 @@ import json
 import vertexai
 from vertexai.generative_models import GenerativeModel
 import time
+from datetime import datetime
 
 
 def get_stoic_quote():
@@ -77,7 +78,7 @@ def send_signal_message(content):
         print(f"Fehler beim Senden der Signal-Nachricht: {e}")
 
 
-def main(request):
+def main():
     """
     Hauptfunktion, die von Google Cloud Run aufgerufen wird.
     """
@@ -94,7 +95,6 @@ def main(request):
 
             if interpreted_data:
                 formatted_message = (
-                    f"Heutiges stoisches Zitat:\n\n"
                     f'"{original_quote}"\n- {author}\n\n'
                     f"Übersetzung:\n{interpreted_data['translation']}\n\n"
                     f"Interpretation:\n{interpreted_data['interpretation']}\n\n"
@@ -107,9 +107,13 @@ def main(request):
 
 
 if __name__ == "__main__":
-    # Dies ermöglicht das lokale Testen des Skripts mit täglicher Wiederholung
-    # Stelle sicher, dass du die Umgebungsvariablen gesetzt hast
+    # Keep the script running and check every hour
     while True:
-        main(None)
-        # Schläft für 24 Stunden (86400 Sekunden)
-        time.sleep(86400)
+        current_time = datetime.now()
+
+        trigger_hour = int(os.environ.get("TRIGGER_HOUR", 7))
+        if current_time.hour == trigger_hour:
+            main()
+
+        # Sleep for 1 hour (3600 seconds)
+        time.sleep(3600)
