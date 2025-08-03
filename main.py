@@ -108,7 +108,8 @@ def send_signal_message(content):
     recipient_number = os.environ.get("RECIPIENT_NUMBER")
 
     if not all([signal_cli_url, sender_number, recipient_number]):
-        print("Fehler: Umgebungsvariablen für Signal sind nicht gesetzt.")
+        print("Umgebungsvariablen für Signal sind nicht gesetzt.")
+        print(content)
         return
 
     headers = {"Content-Type": "application/json"}
@@ -162,9 +163,13 @@ if __name__ == "__main__":
     while True:
         current_time = datetime.now()
 
-        trigger_hour = int(os.environ.get("TRIGGER_HOUR", 7))
-        if current_time.hour == trigger_hour:
+        trigger_hour = os.environ.get("TRIGGER_HOUR")
+
+        if trigger_hour is None or current_time.hour == int(trigger_hour):
             main()
+
+        if trigger_hour is None:
+            break
 
         # Sleep for 1 hour (3600 seconds)
         time.sleep(3600)

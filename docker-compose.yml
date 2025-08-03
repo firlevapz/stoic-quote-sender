@@ -5,9 +5,6 @@ services:
     container_name: stoic-quote-sender
     env_file:
       - .env
-    environment:      
-      # Python Configuration
-      PYTHONUNBUFFERED: "1"
     volumes:
       - ./credentials.json:/app/credentials.json
       - ./quote_index.txt:/app/quote_index.txt
