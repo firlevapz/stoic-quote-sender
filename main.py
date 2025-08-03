@@ -7,15 +7,65 @@ import time
 from datetime import datetime
 
 
-def get_stoic_quote():
-    """Ruft ein stoisches Zitat von der API ab."""
+# --- Quote loading and cycling logic ---
+import glob
+
+QUOTES_DIR = os.path.join(os.path.dirname(__file__), "quotes")
+COUNTER_FILE = os.path.join(os.path.dirname(__file__), "quote_index.txt")
+
+
+def load_all_quotes():
+    quotes = []
+    for file_path in sorted(glob.glob(os.path.join(QUOTES_DIR, "*.json"))):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict) and "quotes" in data:
+                    quotes.extend(data["quotes"])
+                elif isinstance(data, list):
+                    quotes.extend(data)
+        except Exception as e:
+            print(f"Fehler beim Laden von {file_path}: {e}")
+    return quotes
+
+
+def get_quote_index(max_index):
     try:
-        response = requests.get("https://stoic-quotes.com/api/quote")
-        response.raise_for_status()  # Löst eine Ausnahme für schlechte Statuscodes aus
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Fehler beim Abrufen des Zitats: {e}")
+        with open(COUNTER_FILE, "r") as f:
+            idx = f.read().strip()
+            if not idx:
+                idx = 0
+            else:
+                idx = int(idx)
+
+            if idx < 0 or idx >= max_index:
+                idx = 0
+    except Exception:
+        idx = 0
+    return idx
+
+
+def save_quote_index(idx):
+    try:
+        with open(COUNTER_FILE, "w") as f:
+            f.write(str(idx))
+    except Exception as e:
+        print(f"Fehler beim Speichern des Zählerstandes: {e}")
+
+
+ALL_QUOTES = load_all_quotes()
+
+
+def get_stoic_quote():
+    """Liefert das nächste stoische Zitat aus der lokalen Liste und erhöht den Zähler."""
+    if not ALL_QUOTES:
+        print("Keine Zitate gefunden!")
         return None
+    idx = get_quote_index(len(ALL_QUOTES))
+    quote = ALL_QUOTES[idx]
+    next_idx = (idx + 1) % len(ALL_QUOTES)
+    save_quote_index(next_idx)
+    return quote
 
 
 def get_interpretation_and_translation(quote, author):
@@ -85,7 +135,8 @@ def main():
     quote_data = get_stoic_quote()
 
     if quote_data:
-        original_quote = quote_data.get("text")
+        # Support both dicts with 'text' and 'author', or 'quote' and 'author'
+        original_quote = quote_data.get("text") or quote_data.get("quote")
         author = quote_data.get("author")
 
         if original_quote and author:

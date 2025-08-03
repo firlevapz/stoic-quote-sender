@@ -10,6 +10,7 @@ services:
       PYTHONUNBUFFERED: "1"
     volumes:
       - ./credentials.json:/app/credentials.json
+      - ./quote_index.txt:/app/quote_index.txt
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
 
