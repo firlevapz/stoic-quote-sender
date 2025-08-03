@@ -9,7 +9,7 @@ services:
       # Python Configuration
       PYTHONUNBUFFERED: "1"
     volumes:
-      - /path/to/credentials.json:/app/credentials.json
+      - ./credentials.json:/app/credentials.json
     restart: unless-stopped
 
 volumes:
