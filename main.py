@@ -1,17 +1,18 @@
 import os
 import requests
 import json
-import vertexai
-from vertexai.generative_models import GenerativeModel
+import glob
+import random
 import time
 from datetime import datetime
 
+import vertexai
+from vertexai.generative_models import GenerativeModel
 
-# --- Quote loading and cycling logic ---
-import glob
 
 QUOTES_DIR = os.path.join(os.path.dirname(__file__), "quotes")
-COUNTER_FILE = os.path.join(os.path.dirname(__file__), "quote_index.txt")
+COUNTER_FILE = os.path.join(os.path.dirname(__file__), "data", "quote_index.txt")
+ALL_QUOTES_FILE = os.path.join(os.path.dirname(__file__), "data", "all_quotes.json")
 
 
 def load_all_quotes():
@@ -20,13 +21,37 @@ def load_all_quotes():
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if isinstance(data, dict) and "quotes" in data:
-                    quotes.extend(data["quotes"])
+                if isinstance(data, dict):
+                    if "author" in data:
+                        quotes.extend(
+                            [
+                                {"author": data["author"], "text": row}
+                                for row in data.get("quotes", [])
+                            ]
+                        )
+                    else:
+                        quotes.extend(data["quotes"])
+
                 elif isinstance(data, list):
                     quotes.extend(data)
         except Exception as e:
             print(f"Fehler beim Laden von {file_path}: {e}")
-    return quotes
+
+    # load from all_quotes.json if exists
+    if os.path.exists(ALL_QUOTES_FILE):
+        with open(ALL_QUOTES_FILE, "r", encoding="utf-8") as f:
+            all_quotes = json.load(f)
+    else:
+        all_quotes = []
+
+    if len(all_quotes) != len(quotes):
+        # randomize quotes fully, then store it to all_quotes_file
+        all_quotes = quotes[:]
+        random.shuffle(all_quotes)
+        with open(ALL_QUOTES_FILE, "w") as f:
+            json.dump(all_quotes, f, indent=2)
+
+    return all_quotes
 
 
 def get_quote_index(max_index):
