@@ -6,9 +6,9 @@ import random
 import time
 from datetime import datetime
 
-import vertexai
-from vertexai.generative_models import GenerativeModel
+from google import genai
 
+client = genai.Client()
 
 QUOTES_DIR = os.path.join(os.path.dirname(__file__), "quotes")
 COUNTER_FILE = os.path.join(os.path.dirname(__file__), "data", "quote_index.txt")
@@ -97,12 +97,6 @@ def get_interpretation_and_translation(quote, author):
     """
     Übersetzt und interpretiert das Zitat mit Gemini.
     """
-    project_id = os.environ.get("GCP_PROJECT_ID")
-    location = "us-central1"
-    vertexai.init(project=project_id, location=location)
-
-    model = GenerativeModel(os.environ.get("VERTEX_AI_MODEL", "gemini-2.5-flash-lite"))
-
     prompt = f"""
     Bitte übersetze das folgende Zitat ins Deutsche und interpretiere es.
     Gib die Antwort als JSON-Objekt zurück, das die folgenden Schlüssel enthält: "translation", "interpretation", "example".
@@ -114,7 +108,11 @@ def get_interpretation_and_translation(quote, author):
     """
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=os.environ.get("AI_MODEL", "gemini-2.5-flash-lite"),
+            contents=prompt,
+        )
+
         # Die Antwort ist möglicherweise in einer Markdown-Codeblock-Formatierung eingeschlossen
         # Wir müssen sie bereinigen, um reines JSON zu erhalten
         cleaned_response = (
